@@ -30,6 +30,14 @@ export class LoginPage {
   }
 
   async clickLogin(): Promise<void> {
-    await this.page.locator(this.locatorLoginButton).click();
+    const loginButton = this.page.locator(this.locatorLoginButton);
+    await loginButton.click();
+  }
+
+  async loginWith(email: string, password: string): Promise<void> {
+    await this.goto();
+
+    await this.fillEmailPassword(email, password);
+    await this.clickLogin();
   }
 }

@@ -1,20 +1,24 @@
-import { expect } from "@playwright/test";
 import { test } from "../fixtures/base";
 import { LoginPage } from "../pages/login.page";
+import { testUsers } from "../data/test-users";
+import { expect } from "@playwright/test";
 
 test.beforeEach(async ({ loginPage }) => {
   await loginPage.goto();
 });
 
 test("Input fields should display as the data that was filled", async ({
+  page,
   loginPage,
 }) => {
-  await loginPage.fillEmailPassword("s0@g.com", "1234");
+  const student = testUsers["student0"];
 
-  expect(await loginPage.getEmail()).toBe("s0@g.com");
-  expect(await loginPage.getPassword()).toBe("1234");
+  await loginPage.fillEmailPassword(student.email, student.password);
+
+  expect(await loginPage.getEmail()).toBe(student.email);
+  expect(await loginPage.getPassword()).toBe(student.password);
+
+  await loginPage.clickLogin();
+
+  await expect(page).toHaveURL("http://localhost:3000/student");
 });
-
-test("Redirects to home page after successful login", async ({
-  loginPage,
-}) => {});
