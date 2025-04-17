@@ -1,5 +1,13 @@
 # Black Box Testing Plan
 
-### Tutor Create Request
+### Run Tests
 
-### Student Accept Request
+```sh
+pnpm test
+```
+
+### Show the report
+
+```sh
+pnpm report
+```
