@@ -52,10 +52,10 @@ test.describe.serial("Tutor Request Flow", () => {
 
     await tutorRequestsPage.cancelRequestByTitle(title!);
 
-    const statusText = await tutorRequestsPage.getStatusTextByTitle(title!);
-    expect(statusText?.toLowerCase()).toContain("canceled");
-
     const cancelButton = tutorRequestsPage.getCancelButtonByTitle(title!);
     await expect(cancelButton).toBeDisabled();
+
+    const statusText = await tutorRequestsPage.getStatusTextByTitle(title!);
+    expect(statusText?.toLowerCase()).toContain("canceled");
   });
 });

@@ -70,13 +70,6 @@ export class TutorRequestsPage {
     }
     await cancelButton.click();
     await this.page.locator(this.locatorToast).waitFor({ state: "detached" });
-
-    // const isDisabledAfter = await cancelButton.isDisabled();
-    // const statusText = await this.getStatusTextByTitle(title);
-
-    // console.log({ isDisabledAfter, statusText, title });
-
-    // return !!statusText?.toLowerCase().includes("canceled") && isDisabledAfter;
   }
 
   async getRequestRowByTitle(title: string): Promise<Locator> {
