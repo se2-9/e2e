@@ -6,6 +6,8 @@ export class TutorRequestsPage {
 
   locatorRequestTable = "#requests-table";
   locatorRequestTableRow = "[data-testid='requests-table-row']";
+  locatorToast = "[data-sonner-toast]";
+  locatorCancelButton = "#cancel-button";
 
   constructor(page: Page) {
     this.page = page;
@@ -28,7 +30,6 @@ export class TutorRequestsPage {
       const row = rows.nth(i);
 
       const firstColText = await row.locator("td").first().innerText();
-
       if (firstColText?.trim() === title.trim()) {
         return true;
       }
@@ -37,33 +38,54 @@ export class TutorRequestsPage {
     return false;
   }
 
-  async deleteRequestByTitle(title: string): Promise<boolean> {
+  getCancelButtonByTitle(title: string): Locator {
+    return this.page
+      .locator(this.locatorRequestTableRow)
+      .filter({ hasText: title })
+      .getByRole("button", { name: "Cancel" });
+  }
+
+  async getStatusTextByTitle(title: string): Promise<string | null> {
     const row = this.page
-      .locator('[data-testid="requests-table-row"]')
+      .locator(this.locatorRequestTableRow)
       .filter({ hasText: title });
+    const statusCell = row.locator("td").nth(3);
 
-    const cancelButton = row.getByRole("button", { name: "Cancel" });
+    return await statusCell.textContent();
+  }
 
-    if (await cancelButton.isVisible()) {
-      await cancelButton.click();
+  async cancelRequestByTitle(title: string): Promise<void> {
+    const cancelButton = this.getCancelButtonByTitle(title);
+    await cancelButton.waitFor({ state: "visible", timeout: 5000 });
 
-      await this.page.waitForTimeout(1000); // or await toast to be hidden
-
-      const isDisabled = await cancelButton.isDisabled();
-
-      const statusCell = row.locator("td").nth(3); // Assuming 4th column is "Status"
-      const statusText = await statusCell.textContent();
-
-      if (!statusText) return false;
-      return isDisabled && statusText.toLowerCase().includes("canceled");
+    const isAlreadyDisabled = await cancelButton.isDisabled();
+    if (isAlreadyDisabled) {
+      return;
     }
 
-    return false;
+    if (await cancelButton.isDisabled()) {
+      throw new Error(
+        `Cancel button is already disabled for request: ${title}`,
+      );
+    }
+    await cancelButton.click();
+    await this.page.locator(this.locatorToast).waitFor({ state: "detached" });
+
+    // const isDisabledAfter = await cancelButton.isDisabled();
+    // const statusText = await this.getStatusTextByTitle(title);
+
+    // console.log({ isDisabledAfter, statusText, title });
+
+    // return !!statusText?.toLowerCase().includes("canceled") && isDisabledAfter;
   }
 
   async getRequestRowByTitle(title: string): Promise<Locator> {
     return this.page
       .locator(this.locatorRequestTableRow, { hasText: title })
       .first();
+  }
+
+  async getToast(): Promise<Locator> {
+    return this.page.locator(this.locatorToast);
   }
 }

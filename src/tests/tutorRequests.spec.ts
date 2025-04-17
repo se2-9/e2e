@@ -2,7 +2,7 @@ import { testUsers } from "../data/test-users";
 import { test } from "../fixtures/base";
 import { expect } from "@playwright/test";
 
-let cardTitle: string | null = null;
+let title: string | null = null;
 
 test.beforeEach(async ({ page, loginPage, searchPostPage }) => {
   const tutor = testUsers.tutor0;
@@ -13,8 +13,8 @@ test.beforeEach(async ({ page, loginPage, searchPostPage }) => {
   await expect(page).toHaveURL(/\/tutor\/search/);
 });
 
-test.describe.serial("Test Create And Delete Request", () => {
-  test("should show submitted request in tutor's request table", async ({
+test.describe.serial("Tutor Request Flow", () => {
+  test("Tutor can submit a request and see it appear in their request table", async ({
     page,
     searchPostPage,
     tutorRequestsPage,
@@ -24,8 +24,8 @@ test.describe.serial("Test Create And Delete Request", () => {
     const cardCount = await searchPostPage.getCardCount();
     expect(cardCount).toBeGreaterThan(0);
 
-    cardTitle = await searchPostPage.submitRequestOnCard(cardIndex);
-    expect(cardTitle).toBeDefined();
+    title = await searchPostPage.submitRequestOnCard(cardIndex);
+    expect(title).toBeDefined();
 
     const toast = await searchPostPage.getToast();
     await expect(toast).toBeVisible();
@@ -39,16 +39,23 @@ test.describe.serial("Test Create And Delete Request", () => {
     await tutorRequestsPage.goto();
     await expect(page).toHaveURL(/\/tutor\/requests/);
 
-    const isContainsTitle = await tutorRequestsPage.isContainsTitle(cardTitle!);
+    const isContainsTitle = await tutorRequestsPage.isContainsTitle(title!);
     expect(isContainsTitle).toBe(true);
   });
 
-  test("Should delete a submitted request", async ({
+  test("should cancel the submitted request and verify UI reflects change", async ({
     page,
-    searchPostPage,
     tutorRequestsPage,
   }) => {
-    await tutorRequestsPage.goto();
+    tutorRequestsPage.goto();
     await expect(page).toHaveURL(/\/tutor\/requests/);
+
+    await tutorRequestsPage.cancelRequestByTitle(title!);
+
+    const statusText = await tutorRequestsPage.getStatusTextByTitle(title!);
+    expect(statusText?.toLowerCase()).toContain("canceled");
+
+    const cancelButton = tutorRequestsPage.getCancelButtonByTitle(title!);
+    await expect(cancelButton).toBeDisabled();
   });
 });
